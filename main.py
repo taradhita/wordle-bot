@@ -2,7 +2,6 @@ from numpy import append
 from wordle import WordleSolver
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 import random
 import time
 
@@ -18,12 +17,19 @@ def play_wordle(driver, shadow_root, wordle, sorted_top_words):
         
         time.sleep(1)
 
-        game_row = shadow_root.find_element(By.CSS_SELECTOR, "game-row:nth-child(" +str(guess+1)+")")
-        game_row.send_keys(answer)
-        game_row.send_keys(Keys.ENTER)
+        keys = get_keys(shadow_root, driver)
+        for letter in answer:
+            press_key(keys, letter)
+            time.sleep(0.1)
 
-        row = execute_shadow_root(driver, game_row)
-        tiles = row.find_elements(By.CSS_SELECTOR, "game-tile")
+        press_key(keys, "↵")
+        time.sleep(2)
+
+        row = shadow_root.find_element(By.CSS_SELECTOR, f"game-row[letters='{answer}']")
+        tiles = driver.execute_script(
+        "return arguments[0].shadowRoot.querySelectorAll('div > game-tile')",
+            row,
+        )
 
         evaluation = evaluate_answer(tiles)
 
@@ -31,13 +37,22 @@ def play_wordle(driver, shadow_root, wordle, sorted_top_words):
             wordle.retrieve_answer(answer, evaluation)
    
             newlist = wordle.update_predict_list(wordlist_in_char)
-            print(newlist)
             current_guess = newlist[0]
         
         time.sleep(5)
 
-def execute_shadow_root(driver, element):
-    return driver.execute_script("return arguments[0].shadowRoot", element)
+def load_game_app(driver, element):
+    return driver.execute_script("return arguments[0].shadowRoot.getElementById('game')", element)
+
+def get_keys(game, driver):
+    keyboard = game.find_element(By.TAG_NAME, "game-keyboard")
+    keys = driver.execute_script(
+        "return arguments[0].shadowRoot.getElementById('keyboard')", keyboard
+    )
+    return keys
+
+def press_key(keys, letter):
+    keys.find_element(By.CSS_SELECTOR, f'button[data-key="{letter}"]').click()
 
 def retrieve_first_guess(wordle, char, list):
     scores = wordle.count_word_score(char)
@@ -61,16 +76,25 @@ def evaluate_answer(tiles):
 def open_wordle(driver):
     driver.get("https://www.nytimes.com/games/wordle/index.html")
 
-    # i don't know why, but this is the only way the modal can be closed (on safari)
+    # i don't know why, but this is the only way the modal can be closed
     driver.find_element(By.XPATH, "//html").click()
     driver.find_element(By.XPATH, "//html").click()
 
 if __name__ == '__main__':
-    driver = webdriver.Safari()
+    print("Please choose browser")
+    browser = input()
+    if browser == 'safari':
+        driver = webdriver.Safari()
+    elif browser == 'firefox':
+        driver = webdriver.Firefox()
+    elif browser == 'chrome':
+        driver = webdriver.Chrome()
+
     open_wordle(driver)
 
     game_app = driver.find_element(By.TAG_NAME, 'game-app')
-    shadow_root = execute_shadow_root(driver, game_app)
+
+    shadow_root = load_game_app(driver, game_app)
 
     wordle = WordleSolver()
     wordlist = wordle.load_wordlist()
