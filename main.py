@@ -81,7 +81,7 @@ def open_wordle(driver):
     driver.find_element(By.XPATH, "//html").click()
 
 if __name__ == '__main__':
-    print("Please choose browser")
+    print("Please choose browser (safari, firefox, chrome): ")
     browser = input()
     if browser == 'safari':
         driver = webdriver.Safari()
@@ -89,6 +89,8 @@ if __name__ == '__main__':
         driver = webdriver.Firefox()
     elif browser == 'chrome':
         driver = webdriver.Chrome()
+    else:
+        raise Exception("Please input valid browser type")
 
     open_wordle(driver)
 

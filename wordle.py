@@ -52,7 +52,9 @@ class WordleSolver:
         filter_wrong_chars = [c for c in chars if not any(i in self.wrong_char for i in c)] 
         filter_correct_chars = [c for c in filter_wrong_chars if not any((c[i] != self.correct_char[i] for i in range(len(c)) if i in self.correct_char.keys()))]
         filtered_words = [c for c in filter_correct_chars if not (any( i in self.wrong_pos.keys() and c[i] in self.wrong_pos[i] for i in range(len(c)) )) ]
-        filtered_words = [c for c in filtered_words if any(c[i] in {x for v in self.wrong_pos.values() for x in v} for i in range (len(c)))]
+        if (self.wrong_pos):
+            filtered_words = [c for c in filtered_words if any(c[i] in {x for v in self.wrong_pos.values() for x in v} for i in range (len(c)))]
+            filtered_words = [c for c in filtered_words if all(item in c for item in sum(self.wrong_pos.values(), []))]
 
         if (self.no_duplicates):
             filtered_words = [c for c in filtered_words if not any(Counter(c)[j] > 1 for j in self.no_duplicates)]

@@ -11,4 +11,4 @@ This can be used for Safari, Firefox, or Chrome if you already have Selenium dri
 ## To-do
 - [x] Chrome support
 - [x] Firefox support
-- [ ] Fix update word prediction list when no. of present letter > 1 in one row
+- [x] Fix update word prediction list when no. of present letter > 1 in one row
